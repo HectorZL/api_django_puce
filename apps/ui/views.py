@@ -60,7 +60,7 @@ def logout_view(request):
     """Vista para cerrar sesión"""
     logout(request)
     messages.info(request, 'Has cerrado sesión exitosamente.')
-    return redirect('login')
+    return redirect('ui:login')  # Usando el namespace 'ui:login' en lugar de solo 'login'
 
 # Vistas CRUD para Clientes
 @login_required
