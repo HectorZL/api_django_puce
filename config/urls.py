@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+
+# Importar vistas de autenticación
+from apps.clients.views import RegisterView
 
 # Importaciones condicionales para desarrollo
 try:
@@ -14,11 +18,16 @@ urlpatterns = [
     # Panel de administración de Django
     path('admin/', admin.site.urls),
     
-    # URLs de la aplicación UI
-    path('', include('apps.ui.urls')),
+    # URLs de autenticación
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     
-    # API URLs - Aquí incluiremos las URLs de las aplicaciones
-    # path('api/', include('tu_app.urls')),
+    # URLs de la aplicación UI
+    path('', include('apps.ui.urls'), name='home'),
+    
+    # API URLs
+    path('api/auth/register/', RegisterView.as_view(), name='register'),
+    path('api/clients/', include('apps.clients.urls')),
 ]
 
 # Añadir URLs de drf_spectacular si está disponible

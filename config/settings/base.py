@@ -61,39 +61,36 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
-# Configuración para MySQL (simulada)
-# En producción, reemplazar con credenciales reales y usar variables de entorno
+# Configuración para Aiven MySQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='catering_db'),
-        'USER': config('DB_USER', default='catering_user'),
-        'PASSWORD': config('DB_PASSWORD', default='catering_password'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
+        'NAME': 'defaultdb',
+        'USER': 'avnadmin',
+        'PASSWORD': 'AVNS_mKwXlS7A40nk842Y1wy',
+        'HOST': 'cateringdb-competenciautm123.e.aivencloud.com',
+        'PORT': '17550',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
+            'ssl': {
+                'ca': '/path/to/your/ca.pem',  # Debes descargar el certificado CA de Aiven
+                'ssl-mode': 'REQUIRED'
+            },
         },
         'TEST': {
             'CHARSET': 'utf8mb4',
             'COLLATION': 'utf8mb4_unicode_ci',
         },
-    },
-    # Configuración de respaldo para SQLite (desarrollo local)
-    'sqlite': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-# Usar SQLite si no hay configuración de MySQL
-if not all([
-    config('DB_NAME', default=None),
-    config('DB_USER', default=None),
-    config('DB_PASSWORD', default=None),
-]):
-    DATABASES['default'] = DATABASES['sqlite']
+# Configuración de respaldo para SQLite (desarrollo local)
+if config('USE_SQLITE', default=False, cast=bool):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
