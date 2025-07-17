@@ -12,6 +12,9 @@ urlpatterns = [
     # Dashboard
     path('', views.dashboard_view, name='dashboard'),
     
+    # Profile
+    path('perfil/', views.profile_view, name='profile'),
+    
     # Client CRUD
     path('clientes/', views.clientes_list, name='clientes_list'),
     path('clientes/nuevo/', views.cliente_create, name='cliente_create'),

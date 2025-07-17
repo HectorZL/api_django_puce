@@ -8,6 +8,8 @@ from django.db.models import Q
 
 from apps.clients.models import Cliente
 from apps.clients.serializers import ClienteSerializer
+from .models import UserProfile
+from .forms import UserForm, UserProfileForm
 
 def login_view(request):
     """Vista para el inicio de sesión"""
@@ -18,13 +20,20 @@ def login_view(request):
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
             if user is not None:
+                # Ensure the user has a profile
+                from django.db import transaction
+                with transaction.atomic():
+                    profile, created = UserProfile.objects.get_or_create(user=user)
                 login(request, user)
                 messages.success(request, f'Bienvenido {username}!')
-                return redirect('dashboard')
+                return redirect('ui:dashboard')
         messages.error(request, 'Usuario o contraseña incorrectos')
     else:
         form = AuthenticationForm()
-    return render(request, 'ui/login.html', {'form': form})
+    return render(request, 'ui/login.html', {
+        'form': form,
+        'title': 'Iniciar Sesión'
+    })
 
 def register_view(request):
     """Vista para el registro de nuevos usuarios"""
@@ -34,10 +43,13 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, '¡Registro exitoso!')
-            return redirect('dashboard')
+            return redirect('ui:dashboard')
     else:
         form = UserCreationForm()
-    return render(request, 'ui/register.html', {'form': form})
+    return render(request, 'ui/register.html', {
+        'form': form,
+        'show_navbar': False
+    })
 
 @login_required
 def dashboard_view(request):
@@ -107,3 +119,33 @@ def clientes_search(request):
     )
     serializer = ClienteSerializer(clientes, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+@login_required
+def profile_view(request):
+    """Vista para editar el perfil del usuario"""
+    # Asegurarse de que el perfil exista
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(
+            request.POST, 
+            request.FILES, 
+            instance=profile
+        )
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Perfil actualizado exitosamente.')
+            return redirect('ui:profile')
+        else:
+            messages.error(request, 'Por favor corrige los errores a continuación.')
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = UserProfileForm(instance=profile)
+    
+    return render(request, 'ui/profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
+    })

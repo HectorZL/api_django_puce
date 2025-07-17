@@ -18,12 +18,8 @@ urlpatterns = [
     # Panel de administración de Django
     path('admin/', admin.site.urls),
     
-    # URLs de autenticación
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
-    
-    # URLs de la aplicación UI
-    path('', include('apps.ui.urls'), name='home'),
+    # URLs de la aplicación UI (incluye autenticación en /auth/)
+    path('', include(('apps.ui.urls', 'ui'), namespace='ui')),
     
     # API URLs
     path('api/auth/register/', RegisterView.as_view(), name='register'),
