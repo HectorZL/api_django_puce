@@ -29,8 +29,6 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.menus',
     'apps.ui',
-    'apps.inventory',  # Add this line to register the inventory app
-    'apps.menus',      # Also adding menus app since it's being used
 ]
 
 MIDDLEWARE = [
