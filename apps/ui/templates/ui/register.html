@@ -1,0 +1,45 @@
+{% extends 'ui/base.html' %}
+
+{% block title %}Registro de Usuario{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2 class="text-center mb-4">Crear Cuenta</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Nombre de usuario</label>
+            <input type="text" name="username" class="form-control" id="id_username" required>
+            <div class="form-text">Requerido. 150 caracteres o menos. Letras, dígitos y @/./+/-/_ únicamente.</div>
+        </div>
+        <div class="mb-3">
+            <label for="id_password1" class="form-label">Contraseña</label>
+            <input type="password" name="password1" class="form-control" id="id_password1" required>
+            <div class="form-text">
+                <ul>
+                    <li>Tu contraseña no puede ser demasiado similar a tu otra información personal.</li>
+                    <li>Tu contraseña debe contener al menos 8 caracteres.</li>
+                    <li>Tu contraseña no puede ser una contraseña de uso común.</li>
+                    <li>Tu contraseña no puede ser completamente numérica.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="id_password2" class="form-label">Confirmar contraseña</label>
+            <input type="password" name="password2" class="form-control" id="id_password2" required>
+            <div class="form-text">Ingresa la misma contraseña que antes, para verificación.</div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+    </form>
+    <div class="text-center mt-3">
+        <p>¿Ya tienes una cuenta? <a href="{% url 'ui:login' %}">Inicia sesión aquí</a></p>
+    </div>
+</div>
+{% endblock %}

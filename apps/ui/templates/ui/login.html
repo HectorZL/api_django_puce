@@ -1,0 +1,31 @@
+{% extends 'ui/base.html' %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2 class="text-center mb-4">Iniciar Sesión</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Nombre de usuario</label>
+            <input type="text" name="username" class="form-control" id="id_username" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-control" id="id_password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+    </form>
+    <div class="text-center mt-3">
+        <p>¿No tienes una cuenta? <a href="{% url 'ui:register' %}">Regístrate aquí</a></p>
+    </div>
+</div>
+{% endblock %}

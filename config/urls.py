@@ -14,6 +14,9 @@ urlpatterns = [
     # Panel de administración de Django
     path('admin/', admin.site.urls),
     
+    # URLs de la aplicación UI
+    path('', include('apps.ui.urls')),
+    
     # API URLs - Aquí incluiremos las URLs de las aplicaciones
     # path('api/', include('tu_app.urls')),
 ]

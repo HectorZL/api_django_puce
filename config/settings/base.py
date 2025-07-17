@@ -24,7 +24,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'drf_spectacular',
-    # Tus aplicaciones aquí
+    # Aplicaciones locales
+    'apps.clients',
+    'apps.ui',
 ]
 
 MIDDLEWARE = [
@@ -59,12 +61,39 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
+# Configuración para MySQL (simulada)
+# En producción, reemplazar con credenciales reales y usar variables de entorno
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME', default='catering_db'),
+        'USER': config('DB_USER', default='catering_user'),
+        'PASSWORD': config('DB_PASSWORD', default='catering_password'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
+        'TEST': {
+            'CHARSET': 'utf8mb4',
+            'COLLATION': 'utf8mb4_unicode_ci',
+        },
+    },
+    # Configuración de respaldo para SQLite (desarrollo local)
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Usar SQLite si no hay configuración de MySQL
+if not all([
+    config('DB_NAME', default=None),
+    config('DB_USER', default=None),
+    config('DB_PASSWORD', default=None),
+]):
+    DATABASES['default'] = DATABASES['sqlite']
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
