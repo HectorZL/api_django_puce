@@ -1,10 +1,16 @@
-from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
+from rest_framework import viewsets, status, filters, generics, permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Cliente, HistorialPedido
-from .serializers import ClienteSerializer, HistorialPedidoSerializer, ClienteDetailSerializer
+from .serializers import (
+    ClienteSerializer, 
+    HistorialPedidoSerializer, 
+    ClienteDetailSerializer,
+    RegisterSerializer
+)
 
 class ClienteViewSet(viewsets.ModelViewSet):
     """
@@ -19,7 +25,6 @@ class ClienteViewSet(viewsets.ModelViewSet):
     ordering = ['-fecha_registro']
 
     def get_serializer_class(self):
-        
         if self.action == 'retrieve':
             return ClienteDetailSerializer
         return ClienteSerializer
@@ -47,6 +52,42 @@ class HistorialPedidoViewSet(viewsets.ModelViewSet):
     filterset_fields = ['cliente', 'estado']
     ordering_fields = ['fecha_pedido', 'monto_total']
     ordering = ['-fecha_pedido']
+
+
+class RegisterView(generics.CreateAPIView):
+    """
+    Vista para el registro de nuevos usuarios.
+    Crea un nuevo usuario y devuelve un token JWT.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = RegisterSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        # Generar token JWT
+        refresh = RefreshToken.for_user(user)
+        
+        # Crear respuesta
+        response_data = {
+            'status': 'success',
+            'message': 'Usuario registrado exitosamente',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        }
+        
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         
