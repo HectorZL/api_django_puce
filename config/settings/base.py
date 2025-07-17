@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     # Aplicaciones locales
     'apps.clients',
+    'apps.inventory',
+    'apps.menus',
     'apps.ui',
 ]
 

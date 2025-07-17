@@ -1,23 +1,5 @@
 from django.db import models
-
-from apps import inventory
-
-
-class Menu(models.Model):
-    """
-    Modelo para almacenar la información sobre los menus del servicio de catering.
-    """
-
-    MenuItem = models.JSONField()
-    amount = models.IntegerField(verbose_name="Cantidad", blank=False)
-
-    class Meta:
-        verbose_name = 'Menu'
-        verbose_name_plural = 'Menus'
-        ordering = ['-fecha_registro']
-
-    def __str__(self):
-        return f"{self.MenuItem} ({self.amount})"
+from django.core.validators import MinValueValidator
 
 
 class Inventory(models.Model):
@@ -40,38 +22,37 @@ class Inventory(models.Model):
         ('ML', 'Mililitro'),
     ]
     
-    nombre = models.CharField(max_length=100, verbose_name=_('Nombre del artículo'))
-    descripcion = models.TextField(verbose_name=_('Descripción'), blank=True)
+    nombre = models.CharField(max_length=100, verbose_name='Nombre del artículo')
+    descripcion = models.TextField(verbose_name='Descripción', blank=True)
     categoria = models.CharField(
         max_length=20,
         choices=CATEGORY_CHOICES,
-        verbose_name=_('Categoría')
-    )
+        verbose_name='Categoría')
     precio = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name=_('Precio unitario'),
+        verbose_name='Precio unitario',
         validators=[MinValueValidator(0)]
     )
     cantidad_disponible = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name=_('Cantidad disponible'),
+        verbose_name='Cantidad disponible',
         validators=[MinValueValidator(0)]
     )
     unidad_medida = models.CharField(
         max_length=10,
         choices=UNIDAD_MEDIDA,
         default='UNIDAD',
-        verbose_name=_('Unidad de medida')
+        verbose_name='Unidad de medida'
     )
-    activo = models.BooleanField(default=True, verbose_name=_('Activo'))
-    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name=_('Fecha de creación'))
-    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name=_('Última actualización'))
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name='Última actualización')
     
     class Meta:
-        verbose_name = _('Artículo de inventario')
-        verbose_name_plural = _('Artículos de inventario')
+        verbose_name = 'Artículo de inventario'
+        verbose_name_plural = 'Artículos de inventario'
         ordering = ['categoria', 'nombre']
     
     def __str__(self):
