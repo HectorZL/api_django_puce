@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Menu, MenuItem
+from django.contrib import messages
+from django.utils.translation import ngettext
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils import timezone
+from django.db.models import F, Sum
+from .models import Menu, MenuItem, Order, OrderItem
 
 class MenuItemInline(admin.TabularInline):
     model = MenuItem
@@ -8,28 +14,30 @@ class MenuItemInline(admin.TabularInline):
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'tipo_menu', 'precio', 'activo')
+    list_display = ('nombre', 'tipo_menu', 'precio', 'activo', 'items_count')
     list_filter = ('tipo_menu', 'activo')
     search_fields = ('nombre', 'descripcion')
     inlines = [MenuItemInline]
+    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
+    fieldsets = (
+        (None, {
+            'fields': ('nombre', 'descripcion', 'tipo_menu', 'precio', 'activo')
+        }),
+        ('Auditoría', {
+            'classes': ('collapse',),
+            'fields': (('fecha_creacion', 'fecha_actualizacion'),)
+        }),
+    )
     
-    # Remove the items field from the form since we're using inline
-    exclude = ('items',)
+    def items_count(self, obj):
+        return obj.items.count()
+    items_count.short_description = 'Items'
 
 @admin.register(MenuItem)
 class MenuItemAdmin(admin.ModelAdmin):
     list_display = ('menu', 'inventory_item', 'cantidad')
     list_filter = ('menu',)
-    search_fields = ('menu__nombre', 'inventory_item__nombre')from django.contrib import admin
-from django.contrib import messages
-from django.utils.translation import ngettext
-from django.urls import reverse
-from django.utils.html import format_html
-from django.utils import timezone
-from django.db.models import F, Sum
-
-from .models import Menu, Order, OrderItem
-
+    search_fields = ('menu__nombre', 'inventory_item__nombre')
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -37,7 +45,6 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ('subtotal',)
     fields = ('menu', 'cantidad', 'precio_unitario', 'notas', 'subtotal')
     autocomplete_fields = ('menu',)
-
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -296,27 +303,6 @@ class OrderAdmin(admin.ModelAdmin):
             order.save()
             messages.success(request, _('El pedido ha sido marcado como entregado.'))
         return redirect('admin:menus_order_changelist')
-
-
-@admin.register(Menu)
-class MenuAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'tipo_menu', 'precio', 'activo', 'items_count')
-    list_filter = ('tipo_menu', 'activo')
-    search_fields = ('nombre', 'descripcion')
-    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
-    fieldsets = (
-        (None, {
-            'fields': ('nombre', 'descripcion', 'tipo_menu', 'precio', 'activo')
-        }),
-        ('Auditoría', {
-            'classes': ('collapse',),
-            'fields': (('fecha_creacion', 'fecha_actualizacion'),)
-        }),
-    )
-    
-    def items_count(self, obj):
-        return obj.items.count()
-    items_count.short_description = 'Items'
 
 
 @admin.register(OrderItem)

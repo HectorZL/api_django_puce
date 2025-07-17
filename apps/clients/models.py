@@ -1,10 +1,22 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
+
+User = get_user_model()
 
 class Cliente(models.Model):
     """
     Modelo para almacenar la información de los clientes del servicio de catering.
     """
+    usuario = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cliente',
+        verbose_name='Usuario',
+        null=True,  # Make it nullable for migration
+        blank=True  # Allow blank in forms
+    )
+    
     TIPO_IDENTIFICACION = [
         ('C', 'Cédula'),
         ('R', 'RUC'),
@@ -49,7 +61,24 @@ class Cliente(models.Model):
         ordering = ['-fecha_registro']
     
     def __str__(self):
-        return f"{self.nombres} {self.apellidos} ({self.identificacion})"
+        return f"{self.nombres} {self.apellidos}"
+    
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        """Get or create a Cliente for the given user."""
+        try:
+            return user.cliente
+        except Cliente.DoesNotExist:
+            # Create a new Cliente for the user
+            return cls.objects.create(
+                usuario=user,
+                email=user.email,
+                nombres=user.first_name or 'Cliente',
+                apellidos=user.last_name or 'Nuevo',
+                identificacion=f"USER-{user.id}",
+                telefono='',
+                direccion='',
+            )
 
 
 class HistorialPedido(models.Model):
