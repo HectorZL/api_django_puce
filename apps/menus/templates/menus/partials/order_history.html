@@ -1,0 +1,110 @@
+{% load i18n %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{% trans 'Historial del Pedido' %}</h5>
+    </div>
+    <div class="card-body">
+        <div class="timeline">
+            {% for entry in order.history_entries.all %}
+                <div class="timeline-item {% if forloop.first %}timeline-item-last{% endif %}">
+                    <div class="timeline-point">
+                        <i class="bi bi-circle-fill"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0">
+                                {% if entry.old_status %}
+                                    {% blocktrans with old=entry.get_old_status_display new=entry.get_new_status_display %}
+                                        Estado cambiado de <strong>{{ old }}</strong> a <strong>{{ new }}</strong>
+                                    {% endblocktrans %}
+                                {% else %}
+                                    {% blocktrans with status=entry.get_new_status_display %}
+                                        Pedido <strong>{{ status }}</strong>
+                                    {% endblocktrans %}
+                                {% endif %}
+                            </h6>
+                            <small class="text-muted">{{ entry.created_at|date:"d M Y H:i" }}</small>
+                        </div>
+                        
+                        {% if entry.changed_by %}
+                            <p class="small mb-1">
+                                {% trans 'Por' %} 
+                                <strong>
+                                    {% if entry.changed_by.get_full_name %}
+                                        {{ entry.changed_by.get_full_name }}
+                                    {% else %}
+                                        {{ entry.changed_by.username }}
+                                    {% endif %}
+                                </strong>
+                            </p>
+                        {% endif %}
+                        
+                        {% if entry.notes %}
+                            <div class="alert alert-light p-2 mb-0 mt-2">
+                                <small class="text-muted">{{ entry.notes }}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center text-muted py-3">
+                    {% trans 'No hay historial disponible para este pedido.' %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-point {
+    position: absolute;
+    left: -1.5rem;
+    width: 1.5rem;
+    text-align: center;
+    color: #0d6efd;
+    font-size: 0.8rem;
+    line-height: 1;
+}
+
+.timeline-item:not(.timeline-item-last) .timeline-point::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 1.2rem;
+    bottom: -1.5rem;
+    width: 2px;
+    margin-left: -1px;
+    background-color: #e9ecef;
+}
+
+.timeline-content {
+    padding-left: 1rem;
+    position: relative;
+    top: -0.2rem;
+}
+</style>

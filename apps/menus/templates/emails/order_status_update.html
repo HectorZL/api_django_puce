@@ -1,0 +1,130 @@
+{% extends "emails/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <tr>
+        <td style="padding: 20px 0; text-align: center; border-bottom: 1px solid #e5e5e5;">
+            <h1 style="margin: 0; color: #333;">{% trans 'Actualización de tu pedido' %} #{{ order.id }}</h1>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 30px 20px;">
+            <p>{% trans 'Hola' %} {{ order.cliente.nombre_completo }},</p>
+            
+            {% if status_changed %}
+                <p>{% trans 'El estado de tu pedido ha sido actualizado a:' %}</p>
+                <div style="background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 12px 20px; margin: 20px 0;">
+                    <h2 style="margin: 0; color: #333;">{{ order.get_estado_display }}</h2>
+                </div>
+            {% else %}
+                <p>{% trans 'Aquí tienes la información actual de tu pedido:' %}</p>
+            {% endif %}
+            
+            <table width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                    <td style="border: 1px solid #e5e5e5; background-color: #f8f9fa; font-weight: bold;">{% trans 'Número de pedido' %}</td>
+                    <td style="border: 1px solid #e5e5e5;">#{{ order.id }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #e5e5e5; background-color: #f8f9fa; font-weight: bold;">{% trans 'Fecha de entrega' %}</td>
+                    <td style="border: 1px solid #e5e5e5;">{{ order.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #e5e5e5; background-color: #f8f9fa; font-weight: bold;">{% trans 'Dirección de entrega' %}</td>
+                    <td style="border: 1px solid #e5e5e5;">{{ order.direccion_entrega }}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #e5e5e5; background-color: #f8f9fa; font-weight: bold; vertical-align: top;">{% trans 'Estado actual' %}</td>
+                    <td style="border: 1px solid #e5e5e5;">
+                        <span style="display: inline-block; padding: 5px 10px; background-color: 
+                            {% if order.estado == 'PENDIENTE' %}#ffc107
+                            {% elif order.estado == 'CONFIRMADO' %}#17a2b8
+                            {% elif order.estado == 'EN_PROCESO' %}#17a2b8
+                            {% elif order.estado == 'EN_CAMINO' %}#17a2b8
+                            {% elif order.estado == 'ENTREGADO' %}#28a745
+                            {% elif order.estado == 'CANCELADO' %}#dc3545
+                            {% else %}#6c757d{% endif %}; 
+                            color: white; border-radius: 4px; font-weight: bold;">
+                            {{ order.get_estado_display }}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+            
+            <h3 style="margin-top: 30px; color: #333;">{% trans 'Resumen del pedido' %}</h3>
+            <table width="100%" cellpadding="10" cellspacing="0" style="border-collapse: collapse; margin: 10px 0 20px;">
+                <thead>
+                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                        <td style="border: 1px solid #e5e5e5;">{% trans 'Producto' %}</td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">{% trans 'Cantidad' %}</td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">{% trans 'Precio unitario' %}</td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">{% trans 'Subtotal' %}</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td style="border: 1px solid #e5e5e5;">
+                            {{ item.menu.nombre }}
+                            {% if item.notas %}
+                                <div style="font-size: 0.9em; color: #6c757d; margin-top: 5px;">{{ item.notas }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">{{ item.cantidad }}</td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">${{ item.precio_unitario|floatformat:2 }}</td>
+                        <td style="border: 1px solid #e5e5e5; text-align: right;">${{ item.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right; padding: 10px; border: 1px solid #e5e5e5; font-weight: bold;">{% trans 'Subtotal' %}:</td>
+                        <td style="text-align: right; padding: 10px; border: 1px solid #e5e5e5;">${{ order.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: right; padding: 10px; border: 1px solid #e5e5e5; font-weight: bold;">{% trans 'IVA (12%)' %}:</td>
+                        <td style="text-align: right; padding: 10px; border: 1px solid #e5e5e5;">${{ order.iva|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="text-align: right; padding: 10px; border: 1px solid #e5e5e5; font-weight: bold; background-color: #f8f9fa;">
+                            <strong>{% trans 'Total' %}:</strong>
+                        </td>
+                        <td style="text-align: right; padding: 10px; border: 1px solid #e5e5e5; background-color: #f8f9fa; font-weight: bold;">
+                            ${{ order.total|floatformat:2 }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            {% if order.notas %}
+                <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #6c757d;">
+                    <h4 style="margin-top: 0; color: #333;">{% trans 'Notas adicionales' %}:</h4>
+                    <p style="margin-bottom: 0;">{{ order.notas|linebreaksbr }}</p>
+                </div>
+            {% endif %}
+            
+            <div style="margin: 30px 0; text-align: center;">
+                <a href="{{ order_url }}" style="display: inline-block; padding: 12px 25px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                    {% trans 'Ver detalles del pedido' %}
+                </a>
+            </div>
+            
+            <p>{% trans 'Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos respondiendo a este correo.' %}</p>
+            
+            <p>{% trans '¡Gracias por confiar en nosotros!' %}<br>
+            <strong>{{ site_name }}</strong></p>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 20px; text-align: center; background-color: #f8f9fa; color: #6c757d; font-size: 0.9em;">
+            <p style="margin: 0;">
+                {% blocktrans %}
+                Este es un correo automático, por favor no respondas a este mensaje. Si necesitas ayuda, 
+                por favor contacta con nuestro servicio de atención al cliente.
+                {% endblocktrans %}
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

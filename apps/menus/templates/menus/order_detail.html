@@ -1,0 +1,232 @@
+{% extends 'menus/base.html' %}
+{% load i18n humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Order Header with Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">{{ title }}</h1>
+        <div class="d-flex gap-2">
+            {% if order.estado == 'PENDIENTE' and order.cliente.usuario == request.user %}
+                <a href="{% url 'menus:order_edit' order.id %}" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i> {% trans 'Editar Pedido' %}
+                </a>
+            {% endif %}
+            <a href="{% url 'menus:order_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> {% trans 'Volver a Mis Pedidos' %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Order Details -->
+        <div class="col-lg-8">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Resumen del Pedido' %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{% trans 'Producto' %}</th>
+                                    <th class="text-end">{% trans 'Precio Unitario' %}</th>
+                                    <th class="text-center">{% trans 'Cantidad' %}</th>
+                                    <th class="text-end">{% trans 'Subtotal' %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.menu.imagen %}
+                                            <img src="{{ item.menu.imagen.url }}" alt="{{ item.menu.nombre }}" 
+                                                 class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ item.menu.nombre }}</h6>
+                                                {% if item.notas %}
+                                                <small class="text-muted">{{ item.notas }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">${{ item.precio_unitario|floatformat:2|intcomma }}</td>
+                                    <td class="text-center">{{ item.cantidad }}</td>
+                                    <td class="text-end">${{ item.subtotal|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">{% trans 'Subtotal' %}:</td>
+                                    <td class="text-end">${{ order.subtotal|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">{% trans 'IVA (12%)' %}:</td>
+                                    <td class="text-end">${{ order.iva|floatformat:2|intcomma }}</td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td colspan="3" class="text-end fw-bold">{% trans 'Total' %}:</td>
+                                    <td class="text-end fw-bold">${{ order.total|floatformat:2|intcomma }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            {% if order.notas %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Notas del Pedido' %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ order.notas|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Order History -->
+            {% include 'menus/partials/order_history.html' %}
+
+            <!-- Tracking Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Información de Seguimiento' %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{% trans 'No hay información de seguimiento disponible.' %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Order Status and Delivery Info -->
+        <div class="col-lg-4">
+            <!-- Order Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Estado del Pedido' %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge bg-{% if order.estado == 'ENTREGADO' %}success{% elif order.estado == 'CANCELADO' %}danger{% elif order.estado == 'PENDIENTE' %}warning{% else %}info{% endif %} me-2" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                            {{ order.get_estado_display }}
+                        </span>
+                        <span class="text-muted">
+                            {% if order.fecha_actualizacion %}
+                                {{ order.fecha_actualizacion|date:"d M Y H:i" }}
+                            {% else %}
+                                {{ order.fecha_creacion|date:"d M Y H:i" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if order.estado == 'CANCELADO' and order.motivo_cancelacion %}
+                    <div class="alert alert-danger mb-0">
+                        <h6 class="alert-heading">{% trans 'Motivo de cancelación' %}:</h6>
+                        <p class="mb-0">{{ order.motivo_cancelacion }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Delivery Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Información de Entrega' %}</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{% trans 'Dirección de Entrega' %}:</h6>
+                    <p class="mb-3">{{ order.direccion_entrega }}</p>
+                    
+                    <h6>{% trans 'Fecha de Entrega Solicitada' %}:</h6>
+                    <p class="mb-3">{{ order.fecha_entrega|date:"l, d F Y" }}<br>
+                    {{ order.fecha_entrega|time:"H:i" }} hrs</p>
+                    
+                    {% if order.fecha_entrega_real %}
+                    <h6>{% trans 'Fecha de Entrega Real' %}:</h6>
+                    <p class="mb-0">{{ order.fecha_entrega_real|date:"l, d F Y H:i" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans 'Información del Cliente' %}</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{% trans 'Nombre' %}:</h6>
+                    <p class="mb-3">{{ order.cliente.nombre_completo }}</p>
+                    
+                    <h6>{% trans 'Correo Electrónico' %}:</h6>
+                    <p class="mb-3">{{ order.cliente.usuario.email }}</p>
+                    
+                    {% if order.cliente.telefono %}
+                    <h6>{% trans 'Teléfono' %}:</h6>
+                    <p class="mb-0">{{ order.cliente.telefono }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+{% if order.estado == 'PENDIENTE' or order.estado == 'CONFIRMADO' %}
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelOrderModalLabel">{% trans 'Confirmar Cancelación' %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Cerrar' %}"></button>
+            </div>
+            <form action="{% url 'menus:cancel_order' order.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>{% trans '¿Está seguro de que desea cancelar este pedido?' %}</p>
+                    <div class="mb-3">
+                        <label for="motivo_cancelacion" class="form-label">
+                            {% trans 'Motivo de la cancelación' %} <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="motivo_cancelacion" name="motivo_cancelacion" 
+                                  rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {% trans 'Cerrar' %}
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i> {% trans 'Confirmar Cancelación' %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+});
+
+// Cancel order confirmation
+function confirmCancel() {
+    var cancelModal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+    cancelModal.show();
+}
+</script>
+{% endblock %}

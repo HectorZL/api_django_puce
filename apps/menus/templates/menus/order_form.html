@@ -1,0 +1,367 @@
+{% extends 'menus/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block menu_content %}
+<div class="card shadow">
+    <div class="card-body">
+        <form method="post" id="order-form">
+            {% csrf_token %}
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Detalles del Pedido</h5>
+                    {{ form.non_field_errors }}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.fecha_entrega.id_for_label }}" class="form-label">
+                            {{ form.fecha_entrega.label }}
+                        </label>
+                        {{ form.fecha_entrega }}
+                        {% if form.fecha_entrega.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.fecha_entrega.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.direccion_entrega.id_for_label }}" class="form-label">
+                            {{ form.direccion_entrega.label }}
+                        </label>
+                        {{ form.direccion_entrega }}
+                        {% if form.direccion_entrega.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.direccion_entrega.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Resumen del Pedido</h5>
+                            <div id="order-summary">
+                                <p class="text-muted mb-0">Agrega ítems al pedido</p>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total:</span>
+                                    <span id="order-total">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Ítems del Pedido</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-item">
+                        <i class="bi bi-plus-lg"></i> Agregar Ítem
+                    </button>
+                </div>
+                
+                <div id="order-items">
+                    {{ formset.management_form }}
+                    {% for item_form in formset %}
+                        <div class="card mb-3 item-row" data-index="{{ forloop.counter0 }}">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-5">
+                                        <label class="form-label">Menú</label>
+                                        {{ item_form.menu }}
+                                        {{ item_form.id }}
+                                        {% if item_form.menu.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ item_form.menu.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Cantidad</label>
+                                        {{ item_form.cantidad }}
+                                        {% if item_form.cantidad.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ item_form.cantidad.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Notas</label>
+                                        {{ item_form.notas }}
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-end">
+                                        {% if formset.can_delete %}
+                                            {{ item_form.DELETE }}
+                                            <button type="button" class="btn btn-outline-danger btn-sm ms-2 remove-item" 
+                                                    data-bs-toggle="tooltip" title="Eliminar ítem">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <div class="menu-details" id="menu-details-{{ forloop.counter0 }}">
+                                            <!-- Los detalles del menú se cargarán aquí -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'menus:menu_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Volver
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i> Confirmar Pedido
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Plantilla para nuevos ítems (usada por JavaScript) -->
+<template id="empty-form-template">
+    <div class="card mb-3 item-row" data-index="__prefix__">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Menú</label>
+                    {{ formset.empty_form.menu }}
+                    {% if formset.empty_form.menu.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ formset.empty_form.menu.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Cantidad</label>
+                    {{ formset.empty_form.cantidad }}
+                    {% if formset.empty_form.cantidad.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ formset.empty_form.cantidad.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Notas</label>
+                    {{ formset.empty_form.notas }}
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-item" 
+                            data-bs-toggle="tooltip" title="Eliminar ítem">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <div class="menu-details" id="menu-details-__prefix__">
+                        <!-- Los detalles del menú se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('order-form');
+    const formsetContainer = document.getElementById('order-items');
+    const addButton = document.getElementById('add-item');
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+    let formCount = parseInt(totalForms.value);
+    
+    // Función para actualizar el resumen del pedido
+    function updateOrderSummary() {
+        let total = 0;
+        
+        // Recorrer todos los ítems del formulario
+        document.querySelectorAll('.item-row').forEach(row => {
+            const menuSelect = row.querySelector('select');
+            const quantityInput = row.querySelector('input[type="number"]');
+            
+            if (menuSelect && menuSelect.value && quantityInput && quantityInput.value) {
+                const menuOption = menuSelect.options[menuSelect.selectedIndex];
+                const price = parseFloat(menuOption.dataset.price || 0);
+                const quantity = parseInt(quantityInput.value) || 0;
+                total += price * quantity;
+            }
+        });
+        
+        // Actualizar el total en la interfaz
+        document.getElementById('order-total').textContent = formatCurrency(total);
+    }
+    
+    // Función para cargar los detalles de un menú
+    function loadMenuDetails(selectElement) {
+        const menuId = selectElement.value;
+        const row = selectElement.closest('.item-row');
+        const detailsContainer = row.querySelector('.menu-details');
+        
+        if (!menuId) {
+            detailsContainer.innerHTML = '';
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        detailsContainer.innerHTML = '<div class="text-muted"><small>Cargando detalles del menú...</small></div>';
+        
+        // Hacer la petición AJAX para obtener los detalles del menú
+        fetch(`/menus/api/menus/${menuId}/`)
+            .then(response => response.json())
+            .then(data => {
+                // Actualizar el precio en el select
+                const option = selectElement.options[selectElement.selectedIndex];
+                option.dataset.price = data.precio;
+                
+                // Actualizar la interfaz con los detalles del menú
+                detailsContainer.innerHTML = `
+                    <div class="small text-muted">
+                        <div>${data.descripcion || 'Sin descripción'}</div>
+                        <div class="mt-1">
+                            <strong>Precio:</strong> ${formatCurrency(parseFloat(data.precio))} 
+                            <span class="mx-2">•</span>
+                            <strong>Tipo:</strong> ${data.tipo_menu}
+                        </div>
+                    </div>
+                `;
+                
+                // Actualizar el resumen del pedido
+                updateOrderSummary();
+            })
+            .catch(error => {
+                console.error('Error al cargar los detalles del menú:', error);
+                detailsContainer.innerHTML = '<div class="text-danger small">Error al cargar los detalles del menú</div>';
+            });
+    }
+    
+    // Manejar la adición de nuevos ítems
+    addButton.addEventListener('click', function() {
+        const newForm = emptyFormTemplate.replace(/__prefix__/g, formCount);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newForm;
+        
+        // Agregar el nuevo formulario al contenedor
+        formsetContainer.insertBefore(tempDiv.firstElementChild, formsetContainer.lastElementChild);
+        
+        // Actualizar el contador de formularios
+        formCount++;
+        totalForms.value = formCount;
+        
+        // Inicializar tooltips para el nuevo elemento
+        const tooltipTriggerList = [].slice.call(tempDiv.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+    
+    // Manejar la eliminación de ítems
+    formsetContainer.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-item')) {
+            e.preventDefault();
+            const row = e.target.closest('.item-row');
+            const deleteInput = row.querySelector('input[type="checkbox"][id$="-DELETE"]');
+            
+            if (deleteInput) {
+                // Si es un formulario existente, marcarlo para eliminación
+                deleteInput.checked = true;
+                row.style.display = 'none';
+            } else {
+                // Si es un nuevo formulario, eliminarlo directamente
+                row.remove();
+                // Actualizar los índices de los formularios restantes
+                updateFormIndices();
+            }
+            
+            // Actualizar el resumen del pedido
+            updateOrderSummary();
+        }
+    });
+    
+    // Actualizar los índices de los formularios
+    function updateFormIndices() {
+        let count = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const index = row.getAttribute('data-index');
+            if (index !== count.toString()) {
+                // Actualizar el atributo data-index
+                row.setAttribute('data-index', count);
+                
+                // Actualizar los IDs y nombres de los campos
+                row.querySelectorAll('input, select, textarea').forEach(input => {
+                    const name = input.getAttribute('name');
+                    const id = input.getAttribute('id');
+                    
+                    if (name) {
+                        input.setAttribute('name', name.replace(/items-\d+/, `items-${count}`));
+                    }
+                    
+                    if (id) {
+                        input.setAttribute('id', id.replace(/items-\d+/, `items-${count}`));
+                    }
+                    
+                    // Actualizar el for de las etiquetas
+                    const label = document.querySelector(`label[for="${id}"]`);
+                    if (label) {
+                        label.setAttribute('for', id.replace(/items-\d+/, `items-${count}`));
+                    }
+                });
+                
+                // Actualizar el ID del contenedor de detalles del menú
+                const detailsContainer = row.querySelector('.menu-details');
+                if (detailsContainer) {
+                    detailsContainer.id = `menu-details-${count}`;
+                }
+            }
+            count++;
+        });
+        
+        // Actualizar el contador de formularios
+        totalForms.value = count;
+    }
+    
+    // Cargar detalles del menú cuando se selecciona uno
+    formsetContainer.addEventListener('change', function(e) {
+        if (e.target.matches('select[id$="-menu"]')) {
+            loadMenuDetails(e.target);
+        } else if (e.target.matches('input[type="number"][id$="-cantidad"]')) {
+            updateOrderSummary();
+        }
+    });
+    
+    // Cargar detalles para los menús ya seleccionados al cargar la página
+    document.querySelectorAll('select[id$="-menu"]').forEach(select => {
+        if (select.value) {
+            loadMenuDetails(select);
+        }
+    });
+    
+    // Actualizar el resumen del pedido al cargar la página
+    updateOrderSummary();
+    
+    // Manejar el envío del formulario
+    form.addEventListener('submit', function(e) {
+        // Validar que al menos haya un ítem en el pedido
+        const itemCount = document.querySelectorAll('.item-row:not([style*="display: none"]').length;
+        if (itemCount === 0) {
+            e.preventDefault();
+            alert('Por favor, agregue al menos un ítem al pedido.');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.menus',
     'apps.ui',
+    'apps.inventory',  # Add this line to register the inventory app
+    'apps.menus',      # Also adding menus app since it's being used
 ]
 
 MIDDLEWARE = [
@@ -47,7 +49,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

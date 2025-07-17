@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Debug Information -->
+    {% if debug %}
+    <div class="alert alert-info mb-3">
+        <h5>Debug Information:</h5>
+        <pre>User: {{ debug.user }}
+Is Authenticated: {{ debug.is_authenticated }}
+Is Staff: {{ debug.is_staff }}
+Menu Count: {{ debug.menu_count }}</pre>
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ title }}</h1>
+        {% if user.is_authenticated and not user.is_staff %}
+        <a href="{% url 'menus:create_order' %}" class="btn btn-primary">
+            <i class="bi bi-cart-plus me-1"></i> Hacer Pedido
+        </a>
+        {% endif %}
+    </div>
+
+    {% if debug.menu_count > 0 %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for menu in menus %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if menu.imagen %}
+                <img src="{{ menu.imagen.url }}" class="card-img-top" alt="{{ menu.nombre }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="bi bi-cup-hot fs-1 text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ menu.nombre }}</h5>
+                        <span class="badge bg-primary">{{ menu.tipo_menu }}</span>
+                    </div>
+                    
+                    <p class="card-text text-muted">
+                        <small>{{ menu.descripcion|truncatewords:20 }}</small>
+                    </p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h5 class="mb-0 text-primary">${{ menu.precio }}</h5>
+                        {% if user.is_authenticated and not user.is_staff %}
+                        <a href="{% url 'menus:create_order' %}?menu_id={{ menu.id }}" class="btn btn-primary">
+                            <i class="bi bi-cart-plus me-1"></i> Ordenar Ahora
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% if menu.tiempo_preparacion %}
+                        <i class="bi bi-clock me-1"></i> {{ menu.tiempo_preparacion }} min
+                        <span class="mx-2">•</span>
+                        {% endif %}
+                        <i class="bi bi-people me-1"></i> {{ menu.porciones|default:1 }} persona{{ menu.porciones|default:1|pluralize }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No hay menús disponibles en este momento. Por favor, intente más tarde.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script para manejar la funcionalidad de búsqueda/filtrado si es necesario
+console.log('Menu List Page Loaded');
+</script>
+{% endblock %}

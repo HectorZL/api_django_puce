@@ -1,0 +1,163 @@
+{% load i18n %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{% trans 'Seguimiento del Pedido' %}</h5>
+    </div>
+    <div class="card-body">
+        <div class="tracking-steps">
+            <div class="tracking-step {% if delivery_status.is_pending or delivery_status.is_being_prepared or delivery_status.is_in_transit or delivery_status.is_delivered %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="bi bi-cart-check"></i>
+                </div>
+                <div class="step-label">{% trans 'Pedido Recibido' %}</div>
+                <div class="step-line"></div>
+            </div>
+            
+            <div class="tracking-step {% if delivery_status.is_being_prepared or delivery_status.is_in_transit or delivery_status.is_delivered %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div class="step-label">{% trans 'En Preparación' %}</div>
+                <div class="step-line"></div>
+            </div>
+            
+            <div class="tracking-step {% if delivery_status.is_in_transit or delivery_status.is_delivered %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <div class="step-label">{% trans 'En Camino' %}</div>
+                <div class="step-line"></div>
+            </div>
+            
+            <div class="tracking-step {% if delivery_status.is_delivered %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="step-label">{% trans 'Entregado' %}</div>
+            </div>
+        </div>
+        
+        {% if delivery_status.is_cancelled %}
+            <div class="alert alert-danger mt-3 mb-0">
+                <i class="bi bi-x-circle-fill me-2"></i>
+                {% trans 'Este pedido ha sido cancelado.' %}
+                {% if order.motivo_cancelacion %}
+                    <div class="mt-2">
+                        <strong>{% trans 'Motivo:' %}</strong>
+                        <p class="mb-0">{{ order.motivo_cancelacion }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif estimated_delivery %}
+            <div class="alert alert-info mt-3 mb-0">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                {% blocktrans with time=estimated_delivery|time:"H:i" date=estimated_delivery|date:"d/m/Y" %}
+                    Tiempo estimado de entrega: <strong>{{ time }}</strong> del <strong>{{ date }}</strong>
+                {% endblocktrans %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.tracking-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 0 -10px;
+}
+
+.tracking-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 0 10px;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+}
+
+.tracking-step.active {
+    opacity: 1;
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #6c757d;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.tracking-step.active .step-icon {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.tracking-step.active .step-label {
+    color: #212529;
+    font-weight: 600;
+}
+
+.step-line {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: -1;
+}
+
+.tracking-step:last-child .step-line {
+    display: none;
+}
+
+.tracking-step.active .step-line {
+    background-color: #0d6efd;
+}
+
+@media (max-width: 768px) {
+    .tracking-steps {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tracking-step {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 15px;
+        text-align: left;
+        padding: 0;
+    }
+    
+    .step-icon {
+        margin: 0 15px 0 0;
+        flex-shrink: 0;
+    }
+    
+    .step-line {
+        display: none;
+    }
+    
+    .step-label {
+        margin-bottom: 0;
+    }
+}
+</style>

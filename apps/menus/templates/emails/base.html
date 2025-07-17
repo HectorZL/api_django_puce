@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans 'Notificación de Pedido' %}{% endblock %}</title>
+    <style type="text/css">
+        /* Base styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            width: 100% !important;
+            background-color: #f4f4f4;
+        }
+        
+        /* Reset styles for email clients */
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+        }
+        
+        table {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        
+        /* Responsive design */
+        @media screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .content-cell {
+                padding: 20px 10px !important;
+            }
+            .header {
+                font-size: 24px !important;
+            }
+        }
+        
+        /* Typography */
+        h1, h2, h3, h4 {
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-weight: normal;
+            line-height: 1.2;
+            margin: 0 0 15px 0;
+        }
+        
+        h1 { font-size: 28px; }
+        h2 { font-size: 24px; }
+        h3 { font-size: 20px; }
+        h4 { font-size: 16px; }
+        
+        p {
+            margin: 0 0 15px 0;
+            padding: 0;
+        }
+        
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        /* Buttons */
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .status-pending { background-color: #ffc107; }
+        .status-confirmed { background-color: #17a2b8; }
+        .status-processing { background-color: #17a2b8; }
+        .status-shipped { background-color: #17a2b8; }
+        .status-delivered { background-color: #28a745; }
+        .status-cancelled { background-color: #dc3545; }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <!-- Email wrapper -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td align="center" valign="top" style="padding: 20px 0;">
+                <!-- Email container -->
+                <table class="email-container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header" style="padding: 30px 20px; text-align: center; background-color: #ffffff; border-bottom: 1px solid #e5e5e5;">
+                            <img src="{{ protocol }}://{{ domain }}{% static 'img/logo-email.png' %}" alt="{{ site_name }}" style="max-width: 200px; height: auto;" />
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td class="content-cell" style="padding: 30px 20px;">
+                            {% block content %}
+                            <!-- Email content will be inserted here by child templates -->
+                            {% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 20px; text-align: center; background-color: #f8f9fa; color: #6c757d; font-size: 0.9em; border-top: 1px solid #e5e5e5;">
+                            <p style="margin: 0 0 10px 0;">
+                                &copy; {% now "Y" %} {{ site_name }}. {% trans 'Todos los derechos reservados.' %}
+                            </p>
+                            <p style="margin: 0; font-size: 0.9em;">
+                                {% trans 'Este es un correo automático, por favor no respondas a este mensaje.' %}
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

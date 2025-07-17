@@ -21,6 +21,9 @@ urlpatterns = [
     # URLs de la aplicación UI (incluye autenticación en /auth/)
     path('', include(('apps.ui.urls', 'ui'), namespace='ui')),
     
+    # URLs de la aplicación de menús y pedidos
+    path('menus/', include(('apps.menus.urls', 'menus'), namespace='menus')),
+    
     # API URLs
     path('api/auth/register/', RegisterView.as_view(), name='register'),
     path('api/clients/', include('apps.clients.urls')),
